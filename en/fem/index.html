@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>A primer on the finite element method | Adil Kılınç</title>
+  <meta name="description" content="A primer on the finite element method: strong and weak forms, shape functions, element stiffness, assembly, solution, plasticity and good practice, with interactive figures.">
+  <meta property="og:title" content="A primer on the finite element method">
+  <meta property="og:description" content="How a computer turns a solid body, its supports, loads and material into fields of displacement, strain and stress, with interactive figures.">
+  <meta property="og:type" content="article">
+  <link rel="alternate" hreflang="fr" href="https://adilkilinc.github.io/fem/">
+  <link rel="alternate" hreflang="en" href="https://adilkilinc.github.io/en/fem/">
+  <link rel="alternate" hreflang="x-default" href="https://adilkilinc.github.io/fem/">
+  <link rel="icon" href="../../favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="../../fonts/archivo-latin-wdth-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="../../fonts/source-serif-4-latin-opsz-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="../../styles.css">
+  <link rel="stylesheet" href="../../vendor/katex/katex.min.css">
+  <link rel="stylesheet" href="../../fem/primer.css">
+</head>
+<body class="sub">
+  <a class="skip" href="#main">Skip to content</a>
+
+  <div class="bar bar--static">
+    <div class="wrap bar__row">
+      <a class="bar__name" href="../">Adil Kılınç</a>
+      <div class="bar__end">
+      <nav aria-label="Sections">
+        <ul class="bar__nav">
+          <li><a href="../">Home</a></li>
+          <li><a href="../#research">Research</a></li>
+          <li><a href="../#software">Software</a></li>
+          <li><a href="../#publications">Publications</a></li>
+          <li><a href="../#contact">Contact</a></li>
+          <li><a href="./" aria-current="page">FEM primer</a></li>
+          <li><a href="../lab/">Simulator</a></li>
+        </ul>
+      </nav>
+        <div class="lang lang--bar" role="group" aria-label="Language">
+          <a href="../../fem/" hreflang="fr" lang="fr" aria-label="Français">FR</a>
+          <a href="./" hreflang="en" lang="en" aria-current="page" aria-label="English">EN</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <main id="main" class="wrap">
+    <header class="primer__head">
+      <h1>A primer on the finite element method</h1>
+      <p class="primer__lede">How a computer turns a solid body, its supports, its loads and its material into fields of displacement, strain and stress, and where that process can mislead you.</p>
+      <p class="primer__meta">Assumes calculus and linear algebra. Figures 1, 2 and 3 are interactive.</p>
+    </header>
+
+    <div class="primer__layout">
+      <nav class="toc" aria-label="Contents">
+        <ol>
+          <li><a href="#problem">The problem</a></li>
+          <li><a href="#weak-form">From strong form to weak form</a></li>
+          <li><a href="#shape-functions">Meshes and shape functions</a></li>
+          <li><a href="#stiffness">Element stiffness</a></li>
+          <li><a href="#assembly">Assembly and boundary conditions</a></li>
+          <li><a href="#solving">Solving and reading the results</a></li>
+          <li><a href="#example">Worked example: a hanging bar</a></li>
+          <li><a href="#plasticity">Nonlinear problems: plasticity</a></li>
+          <li><a href="#practice">Good practice</a></li>
+          <li><a href="#measurement">From measurement to model</a></li>
+        </ol>
+      </nav>
+
+      <article class="primer__body">
+
+        <section id="problem">
+          <h2>The problem</h2>
+          <p>Take a solid body occupying a region \(\Omega\), held on part of its boundary \(\Gamma_u\) and loaded on the rest, \(\Gamma_t\). We want its displacement field \(\mathbf{u}(\mathbf{x})\), and from it the strains \(\boldsymbol{\varepsilon}\) and stresses \(\boldsymbol{\sigma}\) everywhere inside. Three sets of equations govern the answer: equilibrium with a body force \(\mathbf{b}\), small-strain kinematics, and the material law, here linear elasticity with stiffness tensor \(\mathbb{C}\):</p>
+          <div class="eqs">\[ \nabla\cdot\boldsymbol{\sigma} + \mathbf{b} = \mathbf{0}, \] \[ \boldsymbol{\varepsilon} = \tfrac12\left(\nabla\mathbf{u} + \nabla\mathbf{u}^{\mathsf T}\right), \] \[ \boldsymbol{\sigma} = \mathbb{C}:\boldsymbol{\varepsilon}. \]</div>
+          <p>Boundary conditions complete the problem: prescribed displacements on the supports and prescribed tractions where loads are applied,</p>
+          <div class="eqs">\[ \mathbf{u} = \bar{\mathbf{u}} \ \text{ on } \Gamma_u, \] \[ \boldsymbol{\sigma}\,\mathbf{n} = \bar{\mathbf{t}} \ \text{ on } \Gamma_t. \]</div>
+          <p>For a bar, a beam or a thick-walled cylinder these equations have closed-form solutions. For a bracket, a notched specimen or a turbine disc they do not. That is the gap the finite element method fills: it trades the exact solution of the continuous problem for the exact solution of an approximate, finite one.</p>
+        </section>
+
+        <section id="weak-form">
+          <h2>From strong form to weak form</h2>
+          <p>The equations above must hold at every point; this is the strong form. The finite element method only asks that they hold on average, weighted by every admissible virtual displacement \(\delta\mathbf{u}\), meaning any displacement that vanishes where displacements are prescribed. Multiplying equilibrium by \(\delta\mathbf{u}\), integrating over the body and integrating by parts gives the principle of virtual work, which must hold for every admissible \(\delta\mathbf{u}\):</p>
+          <div class="eqs eqs--tight">\[ \int_\Omega \boldsymbol{\sigma}(\mathbf{u}) : \boldsymbol{\varepsilon}(\delta\mathbf{u})\,\mathrm{d}\Omega \;= \] \[ \int_\Omega \mathbf{b}\cdot\delta\mathbf{u}\,\mathrm{d}\Omega \;+\; \int_{\Gamma_t} \bar{\mathbf{t}}\cdot\delta\mathbf{u}\,\mathrm{d}\Gamma. \]</div>
+          <p>Internal virtual work equals external virtual work. Two things have changed. Only first derivatives of \(\mathbf{u}\) appear, so an approximation that is merely continuous and piecewise smooth is good enough. And the traction condition on \(\Gamma_t\) is now part of the equation instead of a separate constraint. Prescribed displacements still have to be enforced explicitly.</p>
+        </section>
+
+        <section id="shape-functions">
+          <h2>Meshes and shape functions</h2>
+          <p>Divide the body into small, simple pieces, the elements, joined at nodes. Inside each element the displacement is interpolated from the values at its nodes:</p>
+          <div class="eqs">\[ \mathbf{u}(\mathbf{x}) \approx \mathbf{u}_h(\mathbf{x}) = \sum_{a} N_a(\mathbf{x})\,\mathbf{u}_a, \] \[ N_a(\mathbf{x}_b) = \delta_{ab}, \] \[ \sum_a N_a = 1. \]</div>
+          <p>Each shape function \(N_a\) equals one at its own node and zero at the others, and together they reproduce a rigid translation exactly. For the four-node quadrilateral, the workhorse of 2D analysis, they are defined on a reference square with coordinates \(\xi, \eta \in [-1, 1]\):</p>
+          <div class="eqs">\[ N_a(\xi,\eta) = \tfrac14\,(1+\xi_a\xi)(1+\eta_a\eta), \] \[ a = 1,\dots,4. \]</div>
+          <p>The same functions map the reference square onto the real, distorted element, \(\mathbf{x}(\xi,\eta) = \sum_a N_a(\xi,\eta)\,\mathbf{x}_a\). This is the isoparametric idea, and it is what lets one element formulation fit any mesh.</p>
+
+          <figure class="pfig" id="fig-mesh">
+            <div class="pfig__panels">
+              <div class="pfig__panel">
+                <svg id="mesh-body" viewBox="0 0 300 300" role="img" aria-label="A square plate with a central hole, drawn as a continuous body."></svg>
+                <p class="pfig__label">Continuous body</p>
+              </div>
+              <div class="pfig__panel">
+                <svg id="mesh-grid" viewBox="0 0 300 300" role="img" aria-label="The same plate divided into four-node quadrilateral elements, with one element and its four nodes highlighted."></svg>
+                <p class="pfig__label">Mesh of four-node quadrilaterals</p>
+              </div>
+            </div>
+            <div class="pfig__controls">
+              <label for="mesh-density">Elements around the hole</label>
+              <input type="range" id="mesh-density" min="8" max="48" step="4" value="24">
+              <dl class="pfig__readout">
+                <div><dt>Elements</dt><dd id="mesh-elems"></dd></div>
+                <div><dt>Nodes</dt><dd id="mesh-nodes"></dd></div>
+                <div><dt>Unknowns</dt><dd id="mesh-dofs"></dd></div>
+              </dl>
+            </div>
+            <figcaption><span class="fig">Fig. 1</span> A plate with a hole, continuous and discretised. The highlighted element and its four nodes are where the interpolation above lives. Refining the mesh makes the approximation better and the system larger: two unknowns per node in 2D.</figcaption>
+          </figure>
+        </section>
+
+        <section id="stiffness">
+          <h2>Element stiffness</h2>
+          <p>Differentiating the interpolation gives the strain inside an element in terms of its nodal displacements, \(\boldsymbol{\varepsilon} = \mathbf{B}\,\mathbf{u}_e\), where \(\mathbf{B}\) holds derivatives of the shape functions. In Voigt notation the stress is \(\boldsymbol{\sigma} = \mathbf{D}\,\boldsymbol{\varepsilon}\), and for plane stress with Young’s modulus \(E\) and Poisson’s ratio \(\nu\):</p>
+          \[ \mathbf{D} = \frac{E}{1-\nu^2}\begin{bmatrix} 1 &amp; \nu &amp; 0 \\ \nu &amp; 1 &amp; 0 \\ 0 &amp; 0 &amp; \tfrac{1-\nu}{2} \end{bmatrix}. \]
+          <p>Substituting into the virtual work statement element by element yields the element stiffness matrix, evaluated numerically with Gauss quadrature on the reference square:</p>
+          <div class="eqs eqs--tight">\[ \mathbf{K}_e = \int_{\Omega_e} \mathbf{B}^{\mathsf T}\mathbf{D}\,\mathbf{B}\;\mathrm{d}\Omega \;\approx \] \[ \sum_{g} \mathbf{B}^{\mathsf T}(\boldsymbol\xi_g)\,\mathbf{D}\,\mathbf{B}(\boldsymbol\xi_g)\,\det\mathbf{J}(\boldsymbol\xi_g)\,w_g\,t, \]</div>
+          <p>with Gauss points \(\boldsymbol\xi_g\), weights \(w_g\), the Jacobian \(\mathbf{J}\) of the isoparametric map and the thickness \(t\). A four-node quadrilateral with \(2\times2\) Gauss points gives an \(8\times8\) matrix relating the element’s eight nodal forces to its eight nodal displacements.</p>
+        </section>
+
+        <section id="assembly">
+          <h2>Assembly and boundary conditions</h2>
+          <p>Every element adds its stiffness to the rows and columns of the nodes it touches. Summing all contributions gives one global system:</p>
+          <div class="eqs">\[ \mathbf{K}\,\mathbf{u} = \mathbf{f}, \] \[ \mathbf{K} = \mathop{\mathsf{A}}\limits_{e=1}^{n_{\mathrm{el}}}\mathbf{K}_e, \] \[ \mathbf{f} = \mathop{\mathsf{A}}\limits_{e=1}^{n_{\mathrm{el}}}\mathbf{f}_e. \]</div>
+          <p>\(\mathbf{K}\) is symmetric and sparse, because each node couples only to its neighbours. On its own it is singular: the body can still translate and rotate freely. The supports remove those rigid-body motions. Prescribed displacements fix entries of \(\mathbf{u}\), and the corresponding reaction forces come out of the solution; applied loads enter \(\mathbf{f}\). Once the supports fix enough degrees of freedom, \(\mathbf{K}\) is positive definite and the system has a unique solution.</p>
+        </section>
+
+        <section id="solving">
+          <h2>Solving and reading the results</h2>
+          <p>Linear static problems are solved with a sparse direct factorisation (Cholesky or \(\mathbf{LDL}^{\mathsf T}\)) or, for very large models, an iterative method such as preconditioned conjugate gradients. The primary output is the vector of nodal displacements. Strains and stresses follow element by element from \(\boldsymbol{\varepsilon} = \mathbf{B}\,\mathbf{u}_e\) and \(\boldsymbol{\sigma} = \mathbf{D}\,\boldsymbol{\varepsilon}\), usually at the Gauss points, and are then extrapolated and averaged at the nodes to draw contour plots. For metals, the usual scalar summary is the von Mises equivalent stress,</p>
+          <div class="eqs">\[ \sigma_{\mathrm{eq}} = \sqrt{\tfrac32\,\mathbf{s}:\mathbf{s}}, \] \[ \mathbf{s} = \boldsymbol\sigma - \tfrac13\operatorname{tr}(\boldsymbol\sigma)\,\mathbf{I}. \]</div>
+          <p>Stresses are one derivative removed from the displacements, so they converge more slowly and jump across element boundaries. Smoothed contour plots hide those jumps; their size is itself a useful indicator of whether the mesh is fine enough.</p>
+        </section>
+
+        <section id="example">
+          <h2>Worked example: a hanging bar</h2>
+          <p>A bar of length \(L\) and axial stiffness \(EA\) is fixed at \(x = 0\), free at \(x = L\), and carries a uniform axial load \(q\) per unit length, such as its own weight hanging from the support. The exact displacement and axial force are</p>
+          <div class="eqs">\[ u(x) = \frac{q}{EA}\left(Lx - \frac{x^2}{2}\right), \] \[ N(x) = q\,(L - x). \]</div>
+          <p>Split it into \(n_e\) two-node elements of length \(h = L/n_e\). Each element has the stiffness matrix and consistent load vector</p>
+          <div class="eqs">\[ \mathbf{k}_e = \frac{EA}{h}\begin{bmatrix} 1 &amp; -1 \\ -1 &amp; 1 \end{bmatrix}, \] \[ \mathbf{f}_e = \frac{qh}{2}\begin{bmatrix} 1 \\ 1 \end{bmatrix}. \]</div>
+
+          <figure class="pfig" id="fig-bar">
+            <svg id="bar-plot" viewBox="0 0 640 486" role="img" aria-label="Finite element and exact solutions for a bar under uniform axial load: displacement along the bar and axial force along the bar."></svg>
+            <div class="pfig__controls">
+              <label for="bar-n">Number of elements, \(n_e\)</label>
+              <input type="range" id="bar-n" min="1" max="12" step="1" value="3">
+              <dl class="pfig__readout">
+                <div><dt>Elements</dt><dd id="bar-count"></dd></div>
+                <div><dt>Nodal displacement error</dt><dd>0 (exact)</dd></div>
+                <div><dt>Largest axial-force error</dt><dd id="bar-err"></dd></div>
+              </dl>
+            </div>
+            <figcaption><span class="fig">Fig. 2</span> Finite element solution (dark) against the exact solution (teal), both normalised by their maximum values. Move the slider to refine the mesh.</figcaption>
+          </figure>
+
+          <p>Two things stand out as you move the slider. The nodal displacements are exact for any \(n_e\), a special property of this one-dimensional problem, while between the nodes the displacement is only piecewise linear. The axial force is constant in each element and equals the exact value at the element’s midpoint, so the error sits at the element ends and shrinks in proportion to \(h\): the largest error is \(qh/2\), one part in \(2n_e\) of the peak force.</p>
+          <p>Both behaviours carry over to 2D and 3D in a weaker form: displacements converge faster than stresses, and some points inside an element are more accurate than others.</p>
+        </section>
+
+        <section id="plasticity">
+          <h2>Nonlinear problems: plasticity</h2>
+          <p>Beyond yield, stress no longer depends linearly on strain, and it depends on the loading history. The stiffness changes with the solution, so the load is applied in increments and each increment is solved iteratively. The unknown displacements must make the internal forces balance the external ones:</p>
+          <div class="eqs">\[ \mathbf{R}(\mathbf{u}) = \mathbf{f}_{\mathrm{ext}} - \mathbf{f}_{\mathrm{int}}(\mathbf{u}) = \mathbf{0}, \] \[ \mathbf{f}_{\mathrm{int}} = \mathop{\mathsf{A}}\limits_{e=1}^{n_{\mathrm{el}}}\int_{\Omega_e}\mathbf{B}^{\mathsf T}\boldsymbol\sigma\,\mathrm{d}\Omega. \]</div>
+          <p>The Newton–Raphson method linearises this residual around the current estimate and corrects it with the tangent stiffness \(\mathbf{K}_T\) until the residual falls below a tolerance:</p>
+          <div class="eqs">\[ \mathbf{K}_T(\mathbf{u}_k)\,\Delta\mathbf{u} = \mathbf{R}(\mathbf{u}_k), \] \[ \mathbf{u}_{k+1} = \mathbf{u}_k + \Delta\mathbf{u}. \]</div>
+
+          <figure class="pfig" id="fig-newton">
+            <svg id="nr-plot" viewBox="0 0 640 360" role="img" aria-label="Newton–Raphson iterations on a nonlinear load–displacement curve: tangent lines from each estimate converge on the point where internal force equals the applied load."></svg>
+            <div class="pfig__controls">
+              <button type="button" class="pfig__btn" id="nr-step">Next iteration</button>
+              <button type="button" class="pfig__btn pfig__btn--quiet" id="nr-reset">Reset</button>
+              <dl class="pfig__readout" id="nr-readout"></dl>
+            </div>
+            <figcaption><span class="fig">Fig. 3</span> Newton–Raphson on one degree of freedom with a softening response. Each step follows the tangent at the current estimate to the applied load level. The residual falls faster at every iteration once the estimate is close.</figcaption>
+          </figure>
+
+          <p>At each Gauss point a return-mapping algorithm computes the stress. It first assumes the step is elastic. If the resulting trial stress violates the yield condition,</p>
+          <div class="eqs">\[ f = \sigma_{\mathrm{eq}} - \sigma_y(\bar\varepsilon^{p}) \le 0, \] \[ \sigma_y = \sigma_0 + K\,(\bar\varepsilon^{p})^{n} \quad \text{(Ludwik hardening)}, \]</div>
+          <p>it returns the stress to the yield surface and accumulates the equivalent plastic strain \(\bar\varepsilon^{p}\). Differentiating that algorithm exactly gives the consistent tangent, which keeps Newton’s convergence quadratic near the solution. When an increment fails to converge, the solver cuts it back and retries with a smaller step.</p>
+        </section>
+
+        <section id="practice">
+          <h2>Good practice</h2>
+          <dl class="practice">
+            <div>
+              <dt>Converge the mesh</dt>
+              <dd>A result from a single mesh cannot tell you its own discretisation error. Refine until the quantity you care about changes by less than a percent or two.</dd>
+            </div>
+            <div>
+              <dt>Choose elements that suit the physics</dt>
+              <dd>Linear triangles and fully integrated four-node quadrilaterals are too stiff in bending (shear locking), and too stiff in volume change when the material is nearly incompressible, as in plastic flow or rubber (volumetric locking). Remedies include quadratic elements, reduced integration with hourglass control, incompatible-mode elements such as Abaqus CPS4I, and mixed displacement–pressure (hybrid) elements.</dd>
+            </div>
+            <div>
+              <dt>Distrust peak stresses at singularities</dt>
+              <dd>Point loads, point supports and sharp re-entrant corners produce stresses that grow without bound as the mesh is refined. Model the real fillet or contact area, or assess the region with fracture mechanics.</dd>
+            </div>
+            <div>
+              <dt>Keep units consistent</dt>
+              <dd>Most solvers have no units of their own. A common consistent set for structural work is millimetres, newtons, megapascals, tonnes and seconds.</dd>
+            </div>
+            <div>
+              <dt>Question the boundary conditions</dt>
+              <dd>Over-constrained supports create stresses that the real structure never sees, and they are among the most common sources of wrong answers.</dd>
+            </div>
+            <div>
+              <dt>Verify, then validate</dt>
+              <dd>Verification asks whether the equations are solved correctly: patch tests, analytical benchmarks, mesh convergence. Validation asks whether they are the right equations, by comparison with experiments.</dd>
+            </div>
+          </dl>
+        </section>
+
+        <section id="measurement">
+          <h2>From measurement to model</h2>
+          <p>Digital image correlation (DIC) measures the displacement field over the surface of a specimen during a test. In my research those measured displacements are imposed as boundary conditions on a finite element model, so the computed fields satisfy equilibrium and the material law while staying anchored to the experiment. Comparing simulated and measured fields, and tuning material parameters until they agree, turns the finite element method from a prediction tool into an identification tool. <a href="../#research">More on the research</a>.</p>
+        </section>
+
+        <section id="reading" class="reading">
+          <h2>Further reading</h2>
+          <ul>
+            <li>O. C. Zienkiewicz, R. L. Taylor and J. Z. Zhu, <cite>The Finite Element Method: Its Basis and Fundamentals</cite>, 7th ed., Butterworth-Heinemann, 2013.</li>
+            <li>T. J. R. Hughes, <cite>The Finite Element Method: Linear Static and Dynamic Finite Element Analysis</cite>, Dover, 2000.</li>
+            <li>K.-J. Bathe, <cite>Finite Element Procedures</cite>, 2nd ed., 2014.</li>
+            <li>E. A. de Souza Neto, D. Perić and D. R. J. Owen, <cite>Computational Methods for Plasticity: Theory and Applications</cite>, Wiley, 2008.</li>
+            <li>T. Belytschko, W. K. Liu, B. Moran and K. Elkhodary, <cite>Nonlinear Finite Elements for Continua and Structures</cite>, 2nd ed., Wiley, 2014.</li>
+          </ul>
+        </section>
+
+      </article>
+    </div>
+  </main>
+
+  <footer class="wrap foot">
+    <p>© 2026 Adil Kılınç</p>
+  </footer>
+
+  <script src="../../vendor/katex/katex.min.js" defer></script>
+  <script src="../../vendor/katex/contrib/auto-render.min.js" defer></script>
+  <script src="../../fem/primer.js" defer></script>
+  <script src="../../site.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Simulateur éléments finis | Adil Kılınç</title>
+  <meta name="description" content="Un simulateur éléments finis qui tourne dans le navigateur : choisissez une éprouvette, un matériau et un chargement, étirez-la à la souris et suivez les contraintes et la courbe effort–déplacement.">
+  <meta property="og:title" content="Simulateur éléments finis">
+  <meta property="og:description" content="Étirez une éprouvette à la souris : le calcul par éléments finis s’exécute dans votre navigateur.">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="fr_FR">
+  <link rel="alternate" hreflang="fr" href="https://adilkilinc.github.io/lab/">
+  <link rel="alternate" hreflang="en" href="https://adilkilinc.github.io/en/lab/">
+  <link rel="alternate" hreflang="x-default" href="https://adilkilinc.github.io/lab/">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="../fonts/archivo-latin-wdth-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="../fonts/source-serif-4-latin-opsz-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="../styles.css">
+  <link rel="stylesheet" href="lab.css">
+</head>
+<body class="sub">
+  <a class="skip" href="#main">Aller au contenu</a>
+
+  <div class="bar bar--static">
+    <div class="wrap bar__row">
+      <a class="bar__name" href="../">Adil Kılınç</a>
+      <div class="bar__end">
+      <nav aria-label="Sections">
+        <ul class="bar__nav">
+          <li><a href="../">Accueil</a></li>
+          <li><a href="../#research">Recherche</a></li>
+          <li><a href="../#software">Logiciels</a></li>
+          <li><a href="../#publications">Publications</a></li>
+          <li><a href="../#contact">Contact</a></li>
+          <li><a href="../fem/">Éléments finis</a></li>
+          <li><a href="./" aria-current="page">Simulateur</a></li>
+        </ul>
+      </nav>
+        <div class="lang lang--bar" role="group" aria-label="Langue">
+          <a href="./" hreflang="fr" lang="fr" aria-current="page" aria-label="Français">FR</a>
+          <a href="../en/lab/" hreflang="en" lang="en" aria-label="English">EN</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <main id="main" class="wrap">
+    <header class="lab-head">
+      <h1>Simulateur éléments finis</h1>
+      <p>Choisissez une éprouvette, un matériau et un chargement, puis étirez-la à la souris ou au doigt. Le calcul par éléments finis s’exécute directement dans votre navigateur.</p>
+    </header>
+
+    <section class="lab" aria-label="Simulateur">
+      <div class="lab__stage">
+        <canvas id="lab-canvas" role="img" aria-label="Éprouvette déformée, colorée selon le champ affiché. Faites-la glisser, ou utilisez le curseur de déplacement imposé."></canvas>
+        <p class="lab__amp" id="lab-amp"></p>
+        <p class="lab__hint" id="lab-hint" aria-live="polite"></p>
+        <div class="lab__legend">
+          <strong id="lab-cb-title">Contrainte de von Mises</strong>
+          <span class="lab__cb" aria-hidden="true"><span>0</span><i></i><span id="lab-cb-max"></span></span>
+          <span class="lab__over" id="lab-cb-over"><b aria-hidden="true"></b><span id="lab-cb-over-label"></span></span>
+        </div>
+      </div>
+
+      <form class="lab__controls" id="lab-form">
+        <fieldset>
+          <legend>Éprouvette</legend>
+          <div class="seg seg--stack">
+            <label><input type="radio" name="shape" value="dogbone" checked><span>Éprouvette de traction</span></label>
+            <label><input type="radio" name="shape" value="plate"><span>Plaque trouée</span></label>
+            <label><input type="radio" name="shape" value="notched"><span>Barreau entaillé</span></label>
+            <label><input type="radio" name="shape" value="cantilever"><span>Poutre console</span></label>
+          </div>
+        </fieldset>
+
+        <div class="lab__field">
+          <label for="lab-material">Matériau</label>
+          <select id="lab-material">
+            <option value="316l">Acier inoxydable 316L</option>
+            <option value="s355">Acier de construction S355</option>
+            <option value="al6061">Aluminium 6061-T6</option>
+            <option value="ti64">Titane Ti-6Al-4V</option>
+            <option value="cu">Cuivre recuit</option>
+          </select>
+          <p class="lab__props" id="lab-props"></p>
+        </div>
+
+        <fieldset>
+          <legend>Chargement</legend>
+          <div class="seg">
+            <label data-load="tension"><input type="radio" name="load" value="tension" checked><span>Traction</span></label>
+            <label data-load="compression"><input type="radio" name="load" value="compression"><span>Compression</span></label>
+            <label data-load="bending"><input type="radio" name="load" value="bending"><span>Flexion</span></label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Champ affiché</legend>
+          <div class="seg">
+            <label><input type="radio" name="field" value="seq" checked><span>Von Mises</span></label>
+            <label><input type="radio" name="field" value="u"><span>Déplacement</span></label>
+          </div>
+        </fieldset>
+
+        <label class="lab__check"><input type="checkbox" id="lab-mesh" checked> Afficher le maillage</label>
+
+        <div class="lab__field">
+          <label for="lab-d">Déplacement imposé</label>
+          <input type="range" id="lab-d" min="0" max="1000" step="1" value="0">
+        </div>
+
+        <div class="lab__buttons">
+          <button type="button" class="lab__btn" id="lab-run">Lancer l’essai</button>
+          <button type="button" class="lab__btn lab__btn--quiet" id="lab-reset">Réinitialiser</button>
+        </div>
+      </form>
+
+      <div class="lab__results">
+        <svg id="lab-curve" viewBox="0 0 640 256" role="img" aria-label="Courbe effort–déplacement de l’essai, avec le point de première plastification."></svg>
+        <dl class="lab__readout">
+          <div><dt>Déplacement imposé</dt><dd id="lab-r-d">0</dd></div>
+          <div><dt>Effort</dt><dd id="lab-r-f">0</dd></div>
+          <div><dt>Contrainte de von Mises max.</dt><dd id="lab-r-s">0</dd></div>
+          <div><dt>Rapport à la limite d’élasticité</dt><dd id="lab-r-ratio">0</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <div class="lab-notes">
+      <section aria-labelledby="how-h">
+        <h2 id="how-h">Comment ça marche</h2>
+        <p>Le modèle est plan, en contraintes planes, et maillé en quadrangles à modes incompatibles (QM6), qui restent précis en flexion même avec peu d’éléments dans l’épaisseur. Comme sur une machine d’essai, le chargement est piloté en déplacement&nbsp;: vous imposez le déplacement du mors ou de l’extrémité libre, et le calcul donne l’effort et les contraintes.</p>
+        <p>Le comportement est élastique linéaire&nbsp;: un seul calcul suffit par configuration, le reste s’en déduit par proportionnalité. Le point marqué sur la courbe correspond à la première plastification. Au-delà, le calcul élastique n’est plus représentatif, et les zones où la contrainte de von Mises dépasse la limite d’élasticité apparaissent en rouge.</p>
+      </section>
+
+      <section aria-labelledby="verify-h">
+        <h2 id="verify-h">Vérification</h2>
+        <p>Recalculée dans votre navigateur, par le même code que le simulateur.</p>
+        <table class="verify">
+          <thead><tr><th scope="col">Cas</th><th scope="col">Éléments finis</th><th scope="col">Référence</th><th scope="col">Écart</th></tr></thead>
+          <tbody id="lab-verify"></tbody>
+        </table>
+      </section>
+
+      <section aria-labelledby="limits-h">
+        <h2 id="limits-h">Limites</h2>
+        <ul>
+          <li>Pas encore de plasticité&nbsp;: au-delà de la première plastification, le calcul reste élastique.</li>
+          <li>Pas de flambement&nbsp;: en compression, ce modèle linéaire ne peut pas flamber.</li>
+          <li>Pas de torsion&nbsp;: c’est un problème tridimensionnel, hors de portée d’un modèle plan.</li>
+          <li>Propriétés des matériaux indicatives&nbsp;: ne pas les utiliser pour dimensionner une pièce.</li>
+        </ul>
+      </section>
+    </div>
+  </main>
+
+  <footer class="wrap foot">
+    <p>© 2026 Adil Kılınç</p>
+  </footer>
+
+  <script src="fe.js" defer></script>
+  <script src="lab.js" defer></script>
+  <script src="../site.js" defer></script>
+</body>
+</html>

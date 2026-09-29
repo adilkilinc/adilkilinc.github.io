@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Adil Kılınç, mechanical engineer</title>
+  <meta name="description" content="Adil Kılınç: mechanical engineer and final-year PhD candidate at Centrale Lille (LaMcube). Finite-element simulation, plasticity and DIC-based parameter identification in 316L stainless steel.">
+  <meta property="og:title" content="Adil Kılınç, mechanical engineer">
+  <meta property="og:description" content="Finite-element models driven by full-field measurements. Final-year PhD candidate in solid mechanics at Centrale Lille.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://adilkilinc.github.io/img/adil.jpg">
+  <link rel="alternate" hreflang="fr" href="https://adilkilinc.github.io/">
+  <link rel="alternate" hreflang="en" href="https://adilkilinc.github.io/en/">
+  <link rel="alternate" hreflang="x-default" href="https://adilkilinc.github.io/">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="../fonts/archivo-latin-wdth-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="../fonts/source-serif-4-latin-opsz-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <!-- Slides in once the board has scrolled out of view -->
+  <div class="bar" inert>
+    <div class="wrap bar__row">
+      <a class="bar__name" href="#top">Adil Kılınç</a>
+      <div class="bar__end">
+      <nav aria-label="Sections">
+        <ul class="bar__nav">
+          <li><a href="#top">Home</a></li>
+          <li><a href="#research">Research</a></li>
+          <li><a href="#software">Software</a></li>
+          <li><a href="#publications">Publications</a></li>
+          <li><a href="#contact">Contact</a></li>
+          <li><a href="fem/">FEM primer</a></li>
+          <li><a href="lab/">Simulator</a></li>
+        </ul>
+      </nav>
+        <div class="lang lang--bar" role="group" aria-label="Language">
+          <a href="../" hreflang="fr" lang="fr" aria-label="Français">FR</a>
+          <a href="./" hreflang="en" lang="en" aria-current="page" aria-label="English">EN</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <header class="hero" id="top">
+    <div class="hero__stage">
+      <canvas id="field" role="img" aria-label="Illustration of a pixel-per-element finite-element mesh coloured by a synthetic equivalent-strain field, with bands of localised strain crossing a polycrystal."></canvas>
+
+      <nav class="wrap hero__nav" aria-label="Sections, top of page">
+        <ul>
+          <li><a href="#research">Research</a></li>
+          <li><a href="#software">Software</a></li>
+          <li><a href="#publications">Publications</a></li>
+          <li><a href="#contact">Contact</a></li>
+          <li><a href="fem/">FEM primer</a></li>
+          <li><a href="lab/">Simulator</a></li>
+        </ul>
+        <div class="lang" role="group" aria-label="Language">
+          <a href="../" hreflang="fr" lang="fr" aria-label="Français">FR</a>
+          <a href="./" hreflang="en" lang="en" aria-current="page" aria-label="English">EN</a>
+        </div>
+      </nav>
+
+      <div class="wrap hero__block">
+        <section class="cartouche" aria-labelledby="name">
+          <img class="cartouche__photo" src="../img/adil.jpg" width="400" height="400" alt="Portrait of Adil Kılınç">
+          <div class="cartouche__title">
+            <h1 id="name">Adil Kılınç</h1>
+            <p>Mechanical engineer and final-year PhD candidate in solid mechanics at Centrale Lille. I build finite-element models driven by what a camera measures on a specimen’s surface.</p>
+          </div>
+          <dl class="cartouche__fields">
+            <div>
+              <dt>Field</dt>
+              <dd>Computational solid mechanics</dd>
+            </div>
+            <div>
+              <dt>Based in</dt>
+              <dd>Lille, France</dd>
+            </div>
+            <div>
+              <dt>Online</dt>
+              <dd class="cartouche__links">
+                <a href="https://www.linkedin.com/in/adilkilinc/">LinkedIn</a>
+                <a href="https://github.com/adilkilinc">GitHub</a>
+              </dd>
+            </div>
+          </dl>
+        </section>
+      </div>
+    </div>
+
+    <div class="wrap hero__caption">
+      <p class="hero__text"><span class="fig">Fig. 1</span> A pixel-per-element mesh, one element per DIC pixel, coloured by a synthetic equivalent strain field. Hover or tap to probe an element.</p>
+      <dl class="probe">
+        <div><dt>Increment</dt><dd id="probe-inc">20/20</dd></div>
+        <div><dt>Element</dt><dd id="probe-elem">—</dd></div>
+        <div><dt>Grain</dt><dd id="probe-grain">—</dd></div>
+        <div><dt>ε<sub>eq</sub></dt><dd id="probe-val">—</dd></div>
+      </dl>
+      <div class="colorbar" aria-hidden="true">
+        <span>0</span><i></i><span>0.12</span>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+
+    <section class="band" id="about" aria-labelledby="about-h">
+      <div class="wrap">
+        <h2 id="about-h">About</h2>
+        <div class="grid">
+          <div class="span-7 prose">
+            <p>I’m a PhD candidate in solid mechanics at <a href="https://lamcube.univ-lille.fr/">LaMcube</a> (Centrale Lille Institut and Université de Lille), specialising in finite-element simulation and the mechanical behaviour of metallic alloys. My thesis identifies local material parameters in polycrystalline 316L austenitic stainless steel by coupling digital image correlation (DIC) with large-scale Abaqus simulations on HPC.</p>
+            <p>I hold an Erasmus Mundus master’s in Advanced Solid Mechanics, studied in France, Belgium and Poland, and a bachelor’s in mechanical engineering from Istanbul. Alongside the simulation work I teach experimental mechanics labs at Centrale Lille, so I’m as comfortable with a tensile machine as with a solver.</p>
+            <p>Outside work: chess, ice and roller skating, and trekking.</p>
+          </div>
+          <div class="span-5" id="skills">
+            <h3 class="minor">Skills</h3>
+            <dl class="skills">
+              <div><dt>Simulation</dt><dd>Finite-element analysis (Abaqus, ANSYS Mechanical), plasticity and non-linear material behaviour, parameter identification, test–model correlation, DIC data processing</dd></div>
+              <div><dt>Testing</dt><dd>Monotonic and cyclic tension, Charpy impact, Vickers hardness, tension–compression, torsion, buckling, XRD, destructive and non-destructive testing</dd></div>
+              <div><dt>Programming</dt><dd>Python (NumPy), MATLAB, Bash, Linux and HPC (SLURM, MPI), C/C++ and SQL (basic)</dd></div>
+              <div><dt>CAD and tools</dt><dd>SolidWorks, AutoCAD, ANSYS Granta, LaTeX</dd></div>
+              <div><dt>Languages</dt><dd>Turkish (native), English (C1), French (B1)</dd></div>
+            </dl>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="band" id="research" aria-labelledby="research-h">
+      <div class="wrap">
+        <h2 id="research-h">Research</h2>
+        <p class="intro">Differentiating DIC displacements gives a strain estimate that is noisy and satisfies neither equilibrium nor a material law. My thesis takes a three-level route instead, working below the grain scale rather than grain by grain.</p>
+        <ol class="steps">
+          <li>
+            <h3>Macroscopic calibration</h3>
+            <p>Fit the tensile response of the whole specimen to set the reference elastic–plastic behaviour.</p>
+          </li>
+          <li>
+            <h3>Pixel-wise identification</h3>
+            <p>Identify a Ludwik–Hollomon hardening law at every DIC pixel, producing maps of initial yield stress and hardening coefficient.</p>
+          </li>
+          <li>
+            <h3>Finite-element reconstruction</h3>
+            <p>Impose the measured displacements on the boundary of a pixel-per-element Abaqus model and solve for interior strain and stress that satisfy equilibrium and the constitutive law together.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="band" id="software" aria-labelledby="software-h">
+      <div class="wrap">
+        <h2 id="software-h">Software</h2>
+        <div class="grid">
+          <article class="project project--lead span-7">
+            <h3><a href="https://github.com/adilkilinc/DIC-based-inHouse-FEM">DIC-based in-house FEM</a></h3>
+            <p class="role">Author</p>
+            <p>Finite-element reconstruction of stress and strain fields from DIC measurements. Each pixel becomes one plane-stress CPS4 element carrying its own measured yield stress and hardening.</p>
+            <p>The same boundary-value problem is solved two ways: an Abaqus pipeline that writes the input file and extracts ODB results onto a grid, and a standalone Python solver with a closed-form von Mises return mapping, an analytical consistent tangent and Newton–Raphson iterations with automatic cutback, validated against Abaqus.</p>
+            <p class="stack">Python, NumPy, SciPy, Abaqus/Standard. LGPL-2.1.</p>
+          </article>
+
+          <div class="span-5 project-list">
+            <article class="project">
+              <h3><a href="lab/">Finite element simulator</a></h3>
+              <p class="role">Author</p>
+              <p>A plane-stress finite element solver that runs in the browser: classic test specimens, loading with the mouse and a force–displacement curve, verified against reference solutions.</p>
+              <p class="stack">JavaScript, Canvas.</p>
+            </article>
+
+            <article class="project">
+              <h3><a href="https://github.com/jeffwitz/kinematics-driven-316l-strain-reconstruction">Kinematics-driven 316L strain reconstruction</a></h3>
+              <p class="role">Co-author, original solver</p>
+              <p>A research platform that grew out of the in-house solver, developed with Jean-François Witz: 3D constitutive laws under plane stress through MFront/MGIS, Forest–Rubin crystal plasticity, spectral solvers, DIC/EBSD registration and identifiability analysis.</p>
+              <p class="stack">Python, MFront/MGIS, NumPy, Numba.</p>
+            </article>
+
+            <article class="project">
+              <h3><a href="https://github.com/adilkilinc/inpEditor">inpEditor</a></h3>
+              <p class="role">Author</p>
+              <p>Assigns per-grain elastic and plastic properties in Abaqus input files, computes grain size from triangular meshes and applies a Hall–Petch law.</p>
+              <p class="stack">Python, Abaqus input files.</p>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="band" id="publications" aria-labelledby="publications-h">
+      <div class="wrap">
+        <h2 id="publications-h">Publications</h2>
+        <ol class="pubs" reversed>
+          <li>
+            <p class="pubs__meta">Manuscript</p>
+            <p class="pubs__title"><cite>Kinematics-Driven Reconstruction of Microscale Strain Localization in 316L Stainless Steel</cite></p>
+            <p class="pubs__venue"><strong>A. Kılınç</strong>, Q. Hu, J.-F. Witz, D. Najjar, V. Magnier, A. El Bartali</p>
+          </li>
+          <li>
+            <p class="pubs__meta">2025, conference</p>
+            <p class="pubs__title"><cite>Data-Driven Identification of Local Material Parameters in Polycrystalline Stainless Steel</cite></p>
+            <p class="pubs__venue">European Solid Mechanics Conference (ESMC 2025), Lyon, France</p>
+          </li>
+          <li>
+            <p class="pubs__meta">2024, conference</p>
+            <p class="pubs__title"><cite>Identification of Heterogeneous Properties of a Metallic Polycrystal at Microscale</cite></p>
+            <p class="pubs__venue" lang="fr">16<sup>e</sup> Colloque National en Calcul des Structures (CSMA), Giens, France</p>
+          </li>
+          <li>
+            <p class="pubs__meta">2022, journal</p>
+            <p class="pubs__title"><cite>Finite Element Analysis of Force Distribution of Shopping Carts on Human Joints</cite></p>
+            <p class="pubs__venue">International Journal of Pure and Applied Sciences. <a href="https://doi.org/10.29132/ijpas.1018909">doi:10.29132/ijpas.1018909</a></p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="band band--contact" id="contact" aria-labelledby="contact-h">
+      <div class="wrap">
+        <h2 id="contact-h">Contact</h2>
+        <ul class="contact">
+          <li><a href="mailto:kilincadil0@gmail.com">kilincadil0@gmail.com</a></li>
+          <li><a href="https://www.linkedin.com/in/adilkilinc/">linkedin.com/in/adilkilinc</a></li>
+          <li><a href="https://github.com/adilkilinc">github.com/adilkilinc</a></li>
+        </ul>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="wrap foot">
+    <p>© 2026 Adil Kılınç</p>
+  </footer>
+
+  <script src="../field.js" defer></script>
+  <script src="../site.js" defer></script>
+</body>
+</html>

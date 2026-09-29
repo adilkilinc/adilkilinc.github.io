@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Adil Kılınç, ingénieur mécanique</title>
+  <meta name="description" content="Adil Kılınç, ingénieur mécanique et doctorant en dernière année à Centrale Lille (LaMcube). Simulation par éléments finis, plasticité et identification de paramètres par corrélation d’images dans l’acier 316L.">
+  <meta property="og:title" content="Adil Kılınç, ingénieur mécanique">
+  <meta property="og:description" content="Des modèles éléments finis pilotés par les mesures de champs. Doctorant en dernière année en mécanique des solides à Centrale Lille.">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="fr_FR">
+  <meta property="og:image" content="https://adilkilinc.github.io/img/adil.jpg">
+  <link rel="alternate" hreflang="fr" href="https://adilkilinc.github.io/">
+  <link rel="alternate" hreflang="en" href="https://adilkilinc.github.io/en/">
+  <link rel="alternate" hreflang="x-default" href="https://adilkilinc.github.io/">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="fonts/archivo-latin-wdth-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/source-serif-4-latin-opsz-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip" href="#main">Aller au contenu</a>
+
+  <!-- Apparaît une fois le tableau sorti de l’écran -->
+  <div class="bar" inert>
+    <div class="wrap bar__row">
+      <a class="bar__name" href="#top">Adil Kılınç</a>
+      <div class="bar__end">
+      <nav aria-label="Sections">
+        <ul class="bar__nav">
+          <li><a href="#top">Accueil</a></li>
+          <li><a href="#research">Recherche</a></li>
+          <li><a href="#software">Logiciels</a></li>
+          <li><a href="#publications">Publications</a></li>
+          <li><a href="#contact">Contact</a></li>
+          <li><a href="fem/">Éléments finis</a></li>
+          <li><a href="lab/">Simulateur</a></li>
+        </ul>
+      </nav>
+        <div class="lang lang--bar" role="group" aria-label="Langue">
+          <a href="./" hreflang="fr" lang="fr" aria-current="page" aria-label="Français">FR</a>
+          <a href="en/" hreflang="en" lang="en" aria-label="English">EN</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <header class="hero" id="top">
+    <div class="hero__stage">
+      <canvas id="field" role="img" aria-label="Illustration d’un maillage éléments finis à un élément par pixel, coloré selon un champ synthétique de déformation équivalente, traversé par des bandes de localisation dans un polycristal."></canvas>
+
+      <nav class="wrap hero__nav" aria-label="Sections, haut de page">
+        <ul>
+          <li><a href="#research">Recherche</a></li>
+          <li><a href="#software">Logiciels</a></li>
+          <li><a href="#publications">Publications</a></li>
+          <li><a href="#contact">Contact</a></li>
+          <li><a href="fem/">Éléments finis</a></li>
+          <li><a href="lab/">Simulateur</a></li>
+        </ul>
+        <div class="lang" role="group" aria-label="Langue">
+          <a href="./" hreflang="fr" lang="fr" aria-current="page" aria-label="Français">FR</a>
+          <a href="en/" hreflang="en" lang="en" aria-label="English">EN</a>
+        </div>
+      </nav>
+
+      <div class="wrap hero__block">
+        <section class="cartouche" aria-labelledby="name">
+          <img class="cartouche__photo" src="img/adil.jpg" width="400" height="400" alt="Portrait d’Adil Kılınç">
+          <div class="cartouche__title">
+            <h1 id="name">Adil Kılınç</h1>
+            <p>Ingénieur mécanique et doctorant en dernière année en mécanique des solides à Centrale Lille. Je construis des modèles éléments finis pilotés par ce qu’une caméra mesure à la surface d’une éprouvette.</p>
+          </div>
+          <dl class="cartouche__fields">
+            <div>
+              <dt>Domaine</dt>
+              <dd>Mécanique numérique des solides</dd>
+            </div>
+            <div>
+              <dt>Basé à</dt>
+              <dd>Lille, France</dd>
+            </div>
+            <div>
+              <dt>En ligne</dt>
+              <dd class="cartouche__links">
+                <a href="https://www.linkedin.com/in/adilkilinc/">LinkedIn</a>
+                <a href="https://github.com/adilkilinc">GitHub</a>
+              </dd>
+            </div>
+          </dl>
+        </section>
+      </div>
+    </div>
+
+    <div class="wrap hero__caption">
+      <p class="hero__text"><span class="fig">Fig. 1</span> Un maillage à un élément par pixel de corrélation d’images, coloré selon un champ synthétique de déformation équivalente. Survolez ou touchez un élément pour lire sa valeur.</p>
+      <dl class="probe">
+        <div><dt>Incrément</dt><dd id="probe-inc">20/20</dd></div>
+        <div><dt>Élément</dt><dd id="probe-elem">—</dd></div>
+        <div><dt>Grain</dt><dd id="probe-grain">—</dd></div>
+        <div><dt>ε<sub>eq</sub></dt><dd id="probe-val">—</dd></div>
+      </dl>
+      <div class="colorbar" aria-hidden="true">
+        <span>0</span><i></i><span>0,12</span>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+
+    <section class="band" id="about" aria-labelledby="about-h">
+      <div class="wrap">
+        <h2 id="about-h">À propos</h2>
+        <div class="grid">
+          <div class="span-7 prose">
+            <p>Je suis doctorant en mécanique des solides au <a href="https://lamcube.univ-lille.fr/">LaMcube</a> (Centrale Lille Institut et Université de Lille), spécialisé en simulation par éléments finis et en comportement mécanique des alliages métalliques. Ma thèse porte sur l’identification des paramètres matériaux locaux d’un acier inoxydable austénitique 316L polycristallin, en couplant la corrélation d’images numériques (CIN) à des simulations Abaqus à grande échelle sur calculateur HPC.</p>
+            <p>Je suis diplômé du master Erasmus Mundus en mécanique des solides avancée, suivi en France, en Belgique et en Pologne, et titulaire d’un bachelor en génie mécanique obtenu à Istanbul. En parallèle de la simulation, j’encadre des travaux pratiques de mécanique expérimentale à Centrale Lille : je suis aussi à l’aise devant une machine de traction que devant un solveur.</p>
+            <p>En dehors du travail : les échecs, le patinage sur glace et le roller, et la randonnée.</p>
+          </div>
+          <div class="span-5" id="skills">
+            <h3 class="minor">Compétences</h3>
+            <dl class="skills">
+              <div><dt>Simulation</dt><dd>Calcul par éléments finis (Abaqus, ANSYS Mechanical), plasticité et comportement non linéaire des matériaux, identification de paramètres, corrélation calcul–essais, traitement de mesures de champs (CIN)</dd></div>
+              <div><dt>Essais</dt><dd>Traction monotone et cyclique, résilience Charpy, dureté Vickers, traction–compression, torsion, flambement, DRX, contrôles destructifs et non destructifs</dd></div>
+              <div><dt>Programmation</dt><dd>Python (NumPy), MATLAB, Bash, Linux et HPC (SLURM, MPI), C/C++ et SQL (bases)</dd></div>
+              <div><dt>CAO et outils</dt><dd>SolidWorks, AutoCAD, ANSYS Granta, LaTeX</dd></div>
+              <div><dt>Langues</dt><dd>Turc (langue maternelle), anglais (C1), français (B1)</dd></div>
+            </dl>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="band" id="research" aria-labelledby="research-h">
+      <div class="wrap">
+        <h2 id="research-h">Recherche</h2>
+        <p class="intro">Dériver les déplacements mesurés par CIN donne une estimation des déformations bruitée, qui ne respecte ni l’équilibre ni la loi de comportement. Ma thèse suit une autre voie, en trois niveaux, à l’échelle sub-granulaire plutôt que grain par grain.</p>
+        <ol class="steps">
+          <li>
+            <h3>Calibration macroscopique</h3>
+            <p>Ajuster la réponse en traction de l’éprouvette entière pour fixer le comportement élastoplastique de référence.</p>
+          </li>
+          <li>
+            <h3>Identification pixel par pixel</h3>
+            <p>Identifier une loi d’écrouissage de Ludwik–Hollomon en chaque pixel de CIN, pour obtenir des cartes de limite d’élasticité initiale et de coefficient d’écrouissage.</p>
+          </li>
+          <li>
+            <h3>Reconstruction par éléments finis</h3>
+            <p>Imposer les déplacements mesurés sur le contour d’un modèle Abaqus à un élément par pixel, puis calculer les déformations et les contraintes internes qui vérifient à la fois l’équilibre et la loi de comportement.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="band" id="software" aria-labelledby="software-h">
+      <div class="wrap">
+        <h2 id="software-h">Logiciels</h2>
+        <div class="grid">
+          <article class="project project--lead span-7">
+            <h3><a href="https://github.com/adilkilinc/DIC-based-inHouse-FEM">DIC-based in-house FEM</a></h3>
+            <p class="role">Auteur</p>
+            <p>Reconstruction des champs de contraintes et de déformations à partir de mesures de CIN. Chaque pixel devient un élément CPS4 en contraintes planes, doté de sa propre limite d’élasticité et de son propre écrouissage mesurés.</p>
+            <p>Le même problème aux limites est résolu de deux façons : une chaîne Abaqus qui écrit le fichier d’entrée et extrait les résultats de l’ODB sur une grille, et un solveur Python autonome, avec un algorithme de retour de von Mises explicite, une tangente cohérente analytique et des itérations de Newton–Raphson à réduction automatique du pas, validé par comparaison avec Abaqus.</p>
+            <p class="stack">Python, NumPy, SciPy, Abaqus/Standard. LGPL-2.1.</p>
+          </article>
+
+          <div class="span-5 project-list">
+            <article class="project">
+              <h3><a href="lab/">Simulateur éléments finis</a></h3>
+              <p class="role">Auteur</p>
+              <p>Un solveur éléments finis en contraintes planes qui tourne dans le navigateur&nbsp;: éprouvettes classiques, chargement à la souris et courbe effort–déplacement, vérifié sur des solutions de référence.</p>
+              <p class="stack">JavaScript, Canvas.</p>
+            </article>
+
+            <article class="project">
+              <h3><a href="https://github.com/jeffwitz/kinematics-driven-316l-strain-reconstruction" hreflang="en">Kinematics-driven 316L strain reconstruction</a></h3>
+              <p class="role">Co-auteur, solveur d’origine</p>
+              <p>Une plateforme de recherche issue du solveur maison, développée avec Jean-François Witz : lois de comportement 3D en contraintes planes via MFront/MGIS, plasticité cristalline de Forest–Rubin, solveurs spectraux, recalage CIN/EBSD et analyse d’identifiabilité.</p>
+              <p class="stack">Python, MFront/MGIS, NumPy, Numba.</p>
+            </article>
+
+            <article class="project">
+              <h3><a href="https://github.com/adilkilinc/inpEditor">inpEditor</a></h3>
+              <p class="role">Auteur</p>
+              <p>Affecte des propriétés élastiques et plastiques grain par grain dans les fichiers d’entrée Abaqus, calcule la taille des grains à partir de maillages triangulaires et applique une loi de Hall–Petch.</p>
+              <p class="stack">Python, fichiers d’entrée Abaqus.</p>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="band" id="publications" aria-labelledby="publications-h">
+      <div class="wrap">
+        <h2 id="publications-h">Publications</h2>
+        <ol class="pubs" reversed>
+          <li>
+            <p class="pubs__meta">Manuscrit</p>
+            <p class="pubs__title" lang="en"><cite>Kinematics-Driven Reconstruction of Microscale Strain Localization in 316L Stainless Steel</cite></p>
+            <p class="pubs__venue"><strong>A. Kılınç</strong>, Q. Hu, J.-F. Witz, D. Najjar, V. Magnier, A. El Bartali</p>
+          </li>
+          <li>
+            <p class="pubs__meta">2025, conférence</p>
+            <p class="pubs__title" lang="en"><cite>Data-Driven Identification of Local Material Parameters in Polycrystalline Stainless Steel</cite></p>
+            <p class="pubs__venue"><span lang="en">European Solid Mechanics Conference</span> (ESMC 2025), Lyon</p>
+          </li>
+          <li>
+            <p class="pubs__meta">2024, conférence</p>
+            <p class="pubs__title" lang="en"><cite>Identification of Heterogeneous Properties of a Metallic Polycrystal at Microscale</cite></p>
+            <p class="pubs__venue">16<sup>e</sup> Colloque national en calcul des structures (CSMA), Giens</p>
+          </li>
+          <li>
+            <p class="pubs__meta">2022, article</p>
+            <p class="pubs__title" lang="en"><cite>Finite Element Analysis of Force Distribution of Shopping Carts on Human Joints</cite></p>
+            <p class="pubs__venue"><span lang="en">International Journal of Pure and Applied Sciences</span>. <a href="https://doi.org/10.29132/ijpas.1018909">doi:10.29132/ijpas.1018909</a></p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="band band--contact" id="contact" aria-labelledby="contact-h">
+      <div class="wrap">
+        <h2 id="contact-h">Contact</h2>
+        <ul class="contact">
+          <li><a href="mailto:kilincadil0@gmail.com">kilincadil0@gmail.com</a></li>
+          <li><a href="https://www.linkedin.com/in/adilkilinc/">linkedin.com/in/adilkilinc</a></li>
+          <li><a href="https://github.com/adilkilinc">github.com/adilkilinc</a></li>
+        </ul>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="wrap foot">
+    <p>© 2026 Adil Kılınç</p>
+  </footer>
+
+  <script src="field.js" defer></script>
+  <script src="site.js" defer></script>
+</body>
+</html>

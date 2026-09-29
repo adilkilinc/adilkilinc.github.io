@@ -1,0 +1,192 @@
+/* Finite element simulator page, on top of ../styles.css */
+
+.lab-head { padding: clamp(2.5rem, 6vw, 4rem) 0 clamp(1.5rem, 3vw, 2.25rem); }
+.lab-head h1 {
+  font-variation-settings: "wdth" 118;
+  font-weight: 720;
+  font-size: clamp(2.1rem, 4.6vw, 3.5rem);
+  line-height: 1.04;
+  letter-spacing: -0.015em;
+}
+.lab-head p { margin: 1rem 0 0; max-width: 60ch; font-size: clamp(1.1rem, 1.8vw, 1.3rem); line-height: 1.5; }
+
+/* ---------- The instrument: canvas, controls, results ---------- */
+.lab {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 18.5rem;
+  border: 1.5px solid var(--ink);
+  font-family: var(--sans);
+  background: var(--paper);
+}
+.lab__stage { grid-column: 1; grid-row: 1; position: relative; min-width: 0; }
+.lab__controls {
+  grid-column: 2; grid-row: 1 / span 2;
+  display: grid; align-content: start; gap: 1.15rem;
+  margin: 0; padding: 1.1rem 1.15rem 1.25rem;
+  border-left: 1.5px solid var(--ink);
+}
+.lab__results {
+  grid-column: 1; grid-row: 2;
+  display: grid; grid-template-columns: minmax(0, 1fr) 13.5rem;
+  border-top: 1.5px solid var(--ink);
+}
+
+#lab-canvas {
+  display: block;
+  width: 100%;
+  height: clamp(300px, 42vh, 400px);
+  cursor: grab;
+  touch-action: pan-y;
+}
+#lab-canvas.is-dragging { cursor: grabbing; }
+.lab__stage.is-busy #lab-canvas { opacity: 0.35; transition: opacity 0.15s; }
+
+.lab__amp, .lab__hint {
+  position: absolute;
+  left: 1rem;
+  margin: 0;
+  font-size: 0.82rem;
+  pointer-events: none;
+}
+.lab__amp { top: 0.8rem; color: var(--muted); }
+.lab__hint { top: 2.05rem; color: var(--accent); font-weight: 600; }
+
+.lab__legend {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 1.25rem;
+  padding: 0.65rem 1rem;
+  border-top: 1px solid var(--rule);
+  font-size: 0.8rem; color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.lab__legend strong { color: var(--ink); font-weight: 600; }
+.lab__cb { display: flex; align-items: center; gap: 0.5rem; flex: 1 1 14rem; max-width: 26rem; }
+.lab__cb i {
+  flex: 1; height: 8px; min-width: 6rem;
+  background: linear-gradient(90deg, #440154, #3b528b 25%, #21918c 50%, #5ec962 75%, #fde725);
+}
+.lab__over { display: inline-flex; align-items: center; gap: 0.4rem; }
+.lab__over[hidden] { display: none; }
+.lab__over b { display: inline-block; width: 14px; height: 8px; background: var(--warn); }
+
+/* Controls */
+.lab__controls fieldset { margin: 0; padding: 0; border: 0; min-width: 0; }
+.lab__controls legend, .lab__field > label {
+  display: block; padding: 0; margin-bottom: 0.4rem;
+  font-size: 0.78rem; color: var(--muted); font-weight: 500;
+}
+.seg { display: flex; border: 1.5px solid var(--ink); }
+.seg label { position: relative; flex: 1 1 auto; min-width: max-content; } /* each button at least as wide as its label */
+.seg label[hidden] { display: none; }
+.seg label:not([hidden]) ~ label:not([hidden]) { border-left: 1px solid var(--ink); }
+.seg input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.seg span {
+  display: block; padding: 0.45rem 0.5rem; white-space: nowrap;
+  text-align: center; font-size: 0.86rem; font-weight: 560; line-height: 1.25;
+}
+.seg input:checked + span { background: var(--ink); color: var(--paper); }
+.seg input:not(:checked):hover + span { color: var(--accent); }
+.seg input:focus-visible + span { outline: 2px solid var(--focus); outline-offset: -5px; }
+.seg--stack { flex-direction: column; }
+.seg--stack label:not([hidden]) ~ label:not([hidden]) { border-left: 0; border-top: 1px solid var(--ink); }
+.seg--stack span { text-align: left; padding: 0.5rem 0.7rem; }
+
+.lab__field select {
+  width: 100%;
+  font: inherit; font-size: 0.9rem; font-weight: 560;
+  padding: 0.45rem 0.55rem;
+  color: var(--ink); background: var(--paper);
+  border: 1.5px solid var(--ink); border-radius: 0;
+}
+.lab__props { margin: 0.4rem 0 0; font-size: 0.8rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.lab__check { display: flex; align-items: center; gap: 0.5rem; font-size: 0.88rem; cursor: pointer; }
+.lab__check input { width: 1rem; height: 1rem; margin: 0; accent-color: var(--ink); }
+.lab__field input[type="range"] { width: 100%; margin: 0; accent-color: var(--accent); }
+
+.lab__buttons { display: flex; gap: 0.6rem; }
+.lab__btn {
+  flex: 1;
+  font: inherit; font-size: 0.9rem; font-weight: 600;
+  padding: 0.55rem 0.7rem;
+  border: 1.5px solid var(--ink); border-radius: 0;
+  background: var(--ink); color: var(--paper);
+  cursor: pointer;
+}
+.lab__btn:hover { background: var(--accent); border-color: var(--accent); }
+.lab__btn--quiet { background: transparent; color: var(--ink); }
+.lab__btn--quiet:hover { background: transparent; color: var(--accent); }
+
+/* Results: curve and readouts */
+#lab-curve { display: block; width: 100%; height: auto; padding: 0.6rem 0.4rem 0.2rem; }
+.c-rule { stroke: var(--rule); stroke-width: 1; }
+.c-axis { stroke: var(--muted); stroke-width: 1; }
+.c-text { fill: var(--muted); font-family: var(--sans); font-size: 12px; font-variant-numeric: tabular-nums; }
+.c-title { fill: var(--ink); font-family: var(--sans); font-size: 12px; font-weight: 600; }
+.c-label { fill: var(--ink); font-family: var(--sans); font-size: 12px; }
+.c-line { stroke: var(--ink); stroke-width: 2; }
+.c-beyond { stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 5 4; }
+.c-yield { fill: var(--paper); stroke: var(--accent); stroke-width: 2; }
+.c-guide { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 2 3; }
+.c-now { fill: var(--accent); stroke: var(--paper); stroke-width: 1.5; }
+.c-now--over { fill: var(--warn); }
+
+.lab__readout {
+  display: grid; align-content: center; gap: 0.85rem;
+  margin: 0; padding: 1rem 1.1rem;
+  border-left: 1px solid var(--rule);
+  font-variant-numeric: tabular-nums;
+}
+.lab__readout dt { font-size: 0.75rem; color: var(--muted); }
+.lab__readout dd { margin: 0.1rem 0 0; font-size: 1.1rem; font-weight: 640; }
+.lab__readout dd.is-over { color: var(--warn); }
+
+/* ---------- Notes under the instrument ---------- */
+.lab-notes {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: clamp(2rem, 4.5vw, 4.5rem);
+  row-gap: 2.5rem;
+  padding: clamp(2.75rem, 5vw, 4rem) 0 3rem;
+}
+.lab-notes section:first-child { grid-column: span 7; }
+.lab-notes section:nth-child(2) { grid-column: span 5; }
+.lab-notes section:nth-child(3) { grid-column: 1 / span 7; }
+.lab-notes h2 {
+  font-variation-settings: "wdth" 112;
+  font-weight: 700;
+  font-size: clamp(1.35rem, 2.1vw, 1.65rem);
+  line-height: 1.2;
+  margin-bottom: 0.9rem;
+}
+.lab-notes p { margin: 0 0 1em; max-width: var(--measure); }
+.lab-notes ul { margin: 0; padding-left: 1.1rem; display: grid; gap: 0.45rem; }
+
+.verify { width: 100%; border-collapse: collapse; font-family: var(--sans); font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+.verify th, .verify td { padding: 0.6rem 0.75rem 0.6rem 0; text-align: left; vertical-align: top; border-bottom: 1px solid var(--rule); }
+.verify thead th { font-size: 0.78rem; font-weight: 500; color: var(--muted); }
+.verify tbody th { font-weight: 560; }
+.verify td:last-child { font-weight: 640; white-space: nowrap; }
+
+/* ---------- Narrower screens ---------- */
+@media (max-width: 960px) {
+  .lab { grid-template-columns: minmax(0, 1fr); }
+  .lab-notes { grid-template-columns: minmax(0, 1fr); }
+  .lab__controls {
+    grid-column: 1; grid-row: 3;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-left: 0; border-top: 1.5px solid var(--ink);
+  }
+  .lab__controls > :first-child { grid-row: span 3; }
+  .lab__results { grid-row: 2; }
+  .lab-notes section:first-child,
+  .lab-notes section:nth-child(2),
+  .lab-notes section:nth-child(3) { grid-column: 1 / -1; }
+}
+@media (max-width: 760px) {
+  #lab-canvas { height: 230px; }
+  .lab { margin-inline: -0.25rem; }
+  .lab__controls { grid-template-columns: minmax(0, 1fr); }
+  .lab__controls > :first-child { grid-row: auto; }
+  .lab__results { grid-template-columns: minmax(0, 1fr); }
+  .lab__readout { grid-template-columns: 1fr 1fr; border-left: 0; border-top: 1px solid var(--rule); }
+  .verify th, .verify td { padding-right: 0.5rem; }
+}

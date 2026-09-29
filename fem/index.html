@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Introduction à la méthode des éléments finis | Adil Kılınç</title>
+  <meta name="description" content="Introduction à la méthode des éléments finis : formes forte et faible, fonctions de forme, rigidité élémentaire, assemblage, résolution, plasticité et bonnes pratiques, avec des figures interactives.">
+  <meta property="og:title" content="Introduction à la méthode des éléments finis">
+  <meta property="og:description" content="Comment un ordinateur transforme un solide, ses appuis, ses charges et son matériau en champs de déplacement, de déformation et de contrainte, avec des figures interactives.">
+  <meta property="og:type" content="article">
+  <meta property="og:locale" content="fr_FR">
+  <link rel="alternate" hreflang="fr" href="https://adilkilinc.github.io/fem/">
+  <link rel="alternate" hreflang="en" href="https://adilkilinc.github.io/en/fem/">
+  <link rel="alternate" hreflang="x-default" href="https://adilkilinc.github.io/fem/">
+  <link rel="icon" href="../favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="../fonts/archivo-latin-wdth-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="../fonts/source-serif-4-latin-opsz-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="../styles.css">
+  <link rel="stylesheet" href="../vendor/katex/katex.min.css">
+  <link rel="stylesheet" href="primer.css">
+</head>
+<body class="sub">
+  <a class="skip" href="#main">Aller au contenu</a>
+
+  <div class="bar bar--static">
+    <div class="wrap bar__row">
+      <a class="bar__name" href="../">Adil Kılınç</a>
+      <div class="bar__end">
+      <nav aria-label="Sections">
+        <ul class="bar__nav">
+          <li><a href="../">Accueil</a></li>
+          <li><a href="../#research">Recherche</a></li>
+          <li><a href="../#software">Logiciels</a></li>
+          <li><a href="../#publications">Publications</a></li>
+          <li><a href="../#contact">Contact</a></li>
+          <li><a href="./" aria-current="page">Éléments finis</a></li>
+          <li><a href="../lab/">Simulateur</a></li>
+        </ul>
+      </nav>
+        <div class="lang lang--bar" role="group" aria-label="Langue">
+          <a href="./" hreflang="fr" lang="fr" aria-current="page" aria-label="Français">FR</a>
+          <a href="../en/fem/" hreflang="en" lang="en" aria-label="English">EN</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <main id="main" class="wrap">
+    <header class="primer__head">
+      <h1>Introduction à la méthode des éléments finis</h1>
+      <p class="primer__lede">Comment un ordinateur transforme un solide, ses appuis, ses charges et son matériau en champs de déplacement, de déformation et de contrainte, et où ce processus peut induire en erreur.</p>
+      <p class="primer__meta">Prérequis&nbsp;: analyse et algèbre linéaire. Les figures 1, 2 et 3 sont interactives.</p>
+    </header>
+
+    <div class="primer__layout">
+      <nav class="toc" aria-label="Sommaire">
+        <ol>
+          <li><a href="#problem">Le problème</a></li>
+          <li><a href="#weak-form">De la forme forte à la forme faible</a></li>
+          <li><a href="#shape-functions">Maillage et fonctions de forme</a></li>
+          <li><a href="#stiffness">Rigidité élémentaire</a></li>
+          <li><a href="#assembly">Assemblage et conditions aux limites</a></li>
+          <li><a href="#solving">Résolution et exploitation des résultats</a></li>
+          <li><a href="#example">Exemple&nbsp;: une barre suspendue</a></li>
+          <li><a href="#plasticity">Problèmes non linéaires&nbsp;: la plasticité</a></li>
+          <li><a href="#practice">Bonnes pratiques</a></li>
+          <li><a href="#measurement">De la mesure au modèle</a></li>
+        </ol>
+      </nav>
+
+      <article class="primer__body">
+
+        <section id="problem">
+          <h2>Le problème</h2>
+          <p>Considérons un solide occupant un domaine \(\Omega\), maintenu sur une partie \(\Gamma_u\) de sa frontière et chargé sur le reste, \(\Gamma_t\). On cherche son champ de déplacement \(\mathbf{u}(\mathbf{x})\) et, à partir de lui, les déformations \(\boldsymbol{\varepsilon}\) et les contraintes \(\boldsymbol{\sigma}\) en tout point. Trois groupes d’équations régissent la solution&nbsp;: l’équilibre, avec des efforts volumiques \(\mathbf{b}\), la cinématique en petites déformations et la loi de comportement, ici l’élasticité linéaire, de tenseur d’élasticité \(\mathbb{C}\)&nbsp;:</p>
+          <div class="eqs">\[ \nabla\cdot\boldsymbol{\sigma} + \mathbf{b} = \mathbf{0}, \] \[ \boldsymbol{\varepsilon} = \tfrac12\left(\nabla\mathbf{u} + \nabla\mathbf{u}^{\mathsf T}\right), \] \[ \boldsymbol{\sigma} = \mathbb{C}:\boldsymbol{\varepsilon}. \]</div>
+          <p>Les conditions aux limites complètent le problème&nbsp;: déplacements imposés sur les appuis, efforts surfaciques imposés là où s’appliquent les charges,</p>
+          <div class="eqs">\[ \mathbf{u} = \bar{\mathbf{u}} \ \text{ sur } \Gamma_u, \] \[ \boldsymbol{\sigma}\,\mathbf{n} = \bar{\mathbf{t}} \ \text{ sur } \Gamma_t. \]</div>
+          <p>Pour une barre, une poutre ou un cylindre épais, ces équations admettent des solutions analytiques. Pour une ferrure, une éprouvette entaillée ou un disque de turbine, non. C’est là qu’intervient la méthode des éléments finis&nbsp;: elle remplace la solution exacte du problème continu par la solution exacte d’un problème approché, de dimension finie.</p>
+        </section>
+
+        <section id="weak-form">
+          <h2>De la forme forte à la forme faible</h2>
+          <p>Les équations ci-dessus doivent être vérifiées en tout point&nbsp;: c’est la forme forte. La méthode des éléments finis se contente de les vérifier en moyenne, pondérées par tout déplacement virtuel \(\delta\mathbf{u}\) cinématiquement admissible, c’est-à-dire nul là où les déplacements sont imposés. En multipliant l’équation d’équilibre par \(\delta\mathbf{u}\), en intégrant sur le domaine puis en intégrant par parties, on obtient le principe des travaux virtuels, qui doit être vérifié pour tout \(\delta\mathbf{u}\) admissible&nbsp;:</p>
+          <div class="eqs eqs--tight">\[ \int_\Omega \boldsymbol{\sigma}(\mathbf{u}) : \boldsymbol{\varepsilon}(\delta\mathbf{u})\,\mathrm{d}\Omega \;= \] \[ \int_\Omega \mathbf{b}\cdot\delta\mathbf{u}\,\mathrm{d}\Omega \;+\; \int_{\Gamma_t} \bar{\mathbf{t}}\cdot\delta\mathbf{u}\,\mathrm{d}\Gamma. \]</div>
+          <p>Le travail virtuel des efforts intérieurs est égal à celui des efforts extérieurs. Deux choses ont changé. Seules les dérivées premières de \(\mathbf{u}\) apparaissent, si bien qu’une approximation simplement continue et régulière par morceaux suffit. Et la condition sur les efforts imposés sur \(\Gamma_t\) fait désormais partie de l’équation, au lieu d’être une contrainte à part. Les déplacements imposés, eux, doivent toujours être introduits explicitement.</p>
+        </section>
+
+        <section id="shape-functions">
+          <h2>Maillage et fonctions de forme</h2>
+          <p>On découpe le solide en petits morceaux de forme simple, les éléments, reliés entre eux par des nœuds. Dans chaque élément, le déplacement est interpolé à partir de ses valeurs aux nœuds&nbsp;:</p>
+          <div class="eqs">\[ \mathbf{u}(\mathbf{x}) \approx \mathbf{u}_h(\mathbf{x}) = \sum_{a} N_a(\mathbf{x})\,\mathbf{u}_a, \] \[ N_a(\mathbf{x}_b) = \delta_{ab}, \] \[ \sum_a N_a = 1. \]</div>
+          <p>Chaque fonction de forme \(N_a\) vaut un à son propre nœud et zéro aux autres, et leur somme reproduit exactement une translation de corps rigide. Pour le quadrangle à quatre nœuds, l’élément de base du calcul 2D, elles sont définies sur un carré de référence de coordonnées \(\xi, \eta \in [-1, 1]\)&nbsp;:</p>
+          <div class="eqs">\[ N_a(\xi,\eta) = \tfrac14\,(1+\xi_a\xi)(1+\eta_a\eta), \] \[ a = 1,\dots,4. \]</div>
+          <p>Les mêmes fonctions transforment le carré de référence en l’élément réel, déformé&nbsp;: \(\mathbf{x}(\xi,\eta) = \sum_a N_a(\xi,\eta)\,\mathbf{x}_a\). C’est le principe isoparamétrique, qui permet à une même formulation d’élément de s’adapter à n’importe quel maillage.</p>
+
+          <figure class="pfig" id="fig-mesh">
+            <div class="pfig__panels">
+              <div class="pfig__panel">
+                <svg id="mesh-body" viewBox="0 0 300 300" role="img" aria-label="Une plaque carrée percée d’un trou central, représentée comme un solide continu."></svg>
+                <p class="pfig__label">Solide continu</p>
+              </div>
+              <div class="pfig__panel">
+                <svg id="mesh-grid" viewBox="0 0 300 300" role="img" aria-label="La même plaque découpée en quadrangles à quatre nœuds, avec un élément et ses quatre nœuds en surbrillance."></svg>
+                <p class="pfig__label">Maillage en quadrangles à quatre nœuds</p>
+              </div>
+            </div>
+            <div class="pfig__controls">
+              <label for="mesh-density">Éléments autour du trou</label>
+              <input type="range" id="mesh-density" min="8" max="48" step="4" value="24">
+              <dl class="pfig__readout">
+                <div><dt>Éléments</dt><dd id="mesh-elems"></dd></div>
+                <div><dt>Nœuds</dt><dd id="mesh-nodes"></dd></div>
+                <div><dt>Inconnues</dt><dd id="mesh-dofs"></dd></div>
+              </dl>
+            </div>
+            <figcaption><span class="fig">Fig. 1</span> Une plaque trouée, continue puis discrétisée. L’élément en surbrillance et ses quatre nœuds sont le siège de l’interpolation ci-dessus. Raffiner le maillage améliore l’approximation et agrandit le système&nbsp;: deux inconnues par nœud en 2D.</figcaption>
+          </figure>
+        </section>
+
+        <section id="stiffness">
+          <h2>Rigidité élémentaire</h2>
+          <p>En dérivant l’interpolation, on exprime la déformation dans un élément en fonction de ses déplacements nodaux, \(\boldsymbol{\varepsilon} = \mathbf{B}\,\mathbf{u}_e\), où \(\mathbf{B}\) contient les dérivées des fonctions de forme. En notation de Voigt, la contrainte s’écrit \(\boldsymbol{\sigma} = \mathbf{D}\,\boldsymbol{\varepsilon}\) et, en contraintes planes, avec le module d’Young \(E\) et le coefficient de Poisson \(\nu\)&nbsp;:</p>
+          \[ \mathbf{D} = \frac{E}{1-\nu^2}\begin{bmatrix} 1 &amp; \nu &amp; 0 \\ \nu &amp; 1 &amp; 0 \\ 0 &amp; 0 &amp; \tfrac{1-\nu}{2} \end{bmatrix}. \]
+          <p>En reportant ces relations dans le principe des travaux virtuels, élément par élément, on obtient la matrice de rigidité élémentaire, calculée numériquement par intégration de Gauss sur le carré de référence&nbsp;:</p>
+          <div class="eqs eqs--tight">\[ \mathbf{K}_e = \int_{\Omega_e} \mathbf{B}^{\mathsf T}\mathbf{D}\,\mathbf{B}\;\mathrm{d}\Omega \;\approx \] \[ \sum_{g} \mathbf{B}^{\mathsf T}(\boldsymbol\xi_g)\,\mathbf{D}\,\mathbf{B}(\boldsymbol\xi_g)\,\det\mathbf{J}(\boldsymbol\xi_g)\,w_g\,t, \]</div>
+          <p>avec les points de Gauss \(\boldsymbol\xi_g\), les poids \(w_g\), le jacobien \(\mathbf{J}\) de la transformation isoparamétrique et l’épaisseur \(t\). Un quadrangle à quatre nœuds intégré en \(2\times2\) points de Gauss donne une matrice \(8\times8\) qui relie les huit forces nodales de l’élément à ses huit déplacements nodaux.</p>
+        </section>
+
+        <section id="assembly">
+          <h2>Assemblage et conditions aux limites</h2>
+          <p>Chaque élément ajoute sa rigidité aux lignes et aux colonnes des nœuds qu’il touche. La somme de toutes les contributions donne un unique système global&nbsp;:</p>
+          <div class="eqs">\[ \mathbf{K}\,\mathbf{u} = \mathbf{f}, \] \[ \mathbf{K} = \mathop{\mathsf{A}}\limits_{e=1}^{n_{\mathrm{el}}}\mathbf{K}_e, \] \[ \mathbf{f} = \mathop{\mathsf{A}}\limits_{e=1}^{n_{\mathrm{el}}}\mathbf{f}_e. \]</div>
+          <p>\(\mathbf{K}\) est symétrique et creuse, car chaque nœud n’est couplé qu’à ses voisins. Seule, elle est singulière&nbsp;: le solide peut encore se translater et tourner librement. Les appuis suppriment ces mouvements de corps rigide. Les déplacements imposés fixent des composantes de \(\mathbf{u}\), et les réactions correspondantes sortent de la résolution&nbsp;; les charges appliquées entrent dans \(\mathbf{f}\). Dès que les appuis bloquent suffisamment de degrés de liberté, \(\mathbf{K}\) devient définie positive et le système admet une solution unique.</p>
+        </section>
+
+        <section id="solving">
+          <h2>Résolution et exploitation des résultats</h2>
+          <p>Les problèmes statiques linéaires se résolvent par factorisation directe creuse (Cholesky ou \(\mathbf{LDL}^{\mathsf T}\)) ou, pour les très gros modèles, par une méthode itérative comme le gradient conjugué préconditionné. Le résultat principal est le vecteur des déplacements nodaux. Les déformations et les contraintes s’en déduisent élément par élément, \(\boldsymbol{\varepsilon} = \mathbf{B}\,\mathbf{u}_e\) puis \(\boldsymbol{\sigma} = \mathbf{D}\,\boldsymbol{\varepsilon}\), en général aux points de Gauss, avant d’être extrapolées et moyennées aux nœuds pour tracer les cartes d’isovaleurs. Pour les métaux, la grandeur scalaire usuelle est la contrainte équivalente de von Mises&nbsp;:</p>
+          <div class="eqs">\[ \sigma_{\mathrm{eq}} = \sqrt{\tfrac32\,\mathbf{s}:\mathbf{s}}, \] \[ \mathbf{s} = \boldsymbol\sigma - \tfrac13\operatorname{tr}(\boldsymbol\sigma)\,\mathbf{I}. \]</div>
+          <p>Les contraintes sont obtenues en dérivant les déplacements&nbsp;: elles convergent donc plus lentement et présentent des sauts d’un élément à l’autre. Les cartes lissées masquent ces sauts, alors que leur amplitude est en soi un bon indicateur de la finesse du maillage.</p>
+        </section>
+
+        <section id="example">
+          <h2>Exemple&nbsp;: une barre suspendue</h2>
+          <p>Une barre de longueur \(L\) et de rigidité axiale \(EA\), encastrée en \(x = 0\) et libre en \(x = L\), supporte une charge axiale uniforme \(q\) par unité de longueur, par exemple son poids propre lorsqu’elle est suspendue à son support. Le déplacement et l’effort normal exacts valent</p>
+          <div class="eqs">\[ u(x) = \frac{q}{EA}\left(Lx - \frac{x^2}{2}\right), \] \[ N(x) = q\,(L - x). \]</div>
+          <p>On la découpe en \(n_e\) éléments à deux nœuds de longueur \(h = L/n_e\). Chaque élément a pour matrice de rigidité et pour vecteur de chargement cohérent</p>
+          <div class="eqs">\[ \mathbf{k}_e = \frac{EA}{h}\begin{bmatrix} 1 &amp; -1 \\ -1 &amp; 1 \end{bmatrix}, \] \[ \mathbf{f}_e = \frac{qh}{2}\begin{bmatrix} 1 \\ 1 \end{bmatrix}. \]</div>
+
+          <figure class="pfig" id="fig-bar">
+            <svg id="bar-plot" viewBox="0 0 640 486" role="img" aria-label="Solutions éléments finis et exacte pour une barre sous charge axiale uniforme&nbsp;: déplacement et effort normal le long de la barre."></svg>
+            <div class="pfig__controls">
+              <label for="bar-n">Nombre d’éléments, \(n_e\)</label>
+              <input type="range" id="bar-n" min="1" max="12" step="1" value="3">
+              <dl class="pfig__readout">
+                <div><dt>Éléments</dt><dd id="bar-count"></dd></div>
+                <div><dt>Erreur sur les déplacements nodaux</dt><dd>0 (exacte)</dd></div>
+                <div><dt>Erreur maximale sur l’effort normal</dt><dd id="bar-err"></dd></div>
+              </dl>
+            </div>
+            <figcaption><span class="fig">Fig. 2</span> Solution éléments finis (en foncé) et solution exacte (en bleu canard), normalisées par leur valeur maximale. Déplacez le curseur pour raffiner le maillage.</figcaption>
+          </figure>
+
+          <p>Deux choses sautent aux yeux quand on déplace le curseur. Les déplacements nodaux sont exacts quel que soit \(n_e\), une propriété particulière de ce problème unidimensionnel, alors qu’entre les nœuds le déplacement n’est que linéaire par morceaux. L’effort normal est constant dans chaque élément et égal à la valeur exacte au milieu de l’élément&nbsp;: l’erreur se concentre aux extrémités des éléments et diminue proportionnellement à \(h\). L’erreur maximale vaut \(qh/2\), soit une fraction \(1/(2n_e)\) de l’effort maximal.</p>
+          <p>Ces deux comportements se retrouvent en 2D et en 3D sous une forme atténuée&nbsp;: les déplacements convergent plus vite que les contraintes, et certains points d’un élément sont plus précis que d’autres.</p>
+        </section>
+
+        <section id="plasticity">
+          <h2>Problèmes non linéaires&nbsp;: la plasticité</h2>
+          <p>Au-delà de la limite d’élasticité, la contrainte ne dépend plus linéairement de la déformation, et elle dépend de l’histoire du chargement. La rigidité varie avec la solution&nbsp;: on applique donc la charge par incréments, et chaque incrément est résolu de manière itérative. Les déplacements inconnus doivent équilibrer efforts intérieurs et efforts extérieurs&nbsp;:</p>
+          <div class="eqs">\[ \mathbf{R}(\mathbf{u}) = \mathbf{f}_{\mathrm{ext}} - \mathbf{f}_{\mathrm{int}}(\mathbf{u}) = \mathbf{0}, \] \[ \mathbf{f}_{\mathrm{int}} = \mathop{\mathsf{A}}\limits_{e=1}^{n_{\mathrm{el}}}\int_{\Omega_e}\mathbf{B}^{\mathsf T}\boldsymbol\sigma\,\mathrm{d}\Omega. \]</div>
+          <p>La méthode de Newton–Raphson linéarise ce résidu autour de l’estimation courante et la corrige à l’aide de la matrice de rigidité tangente \(\mathbf{K}_T\), jusqu’à ce que le résidu passe sous une tolérance&nbsp;:</p>
+          <div class="eqs">\[ \mathbf{K}_T(\mathbf{u}_k)\,\Delta\mathbf{u} = \mathbf{R}(\mathbf{u}_k), \] \[ \mathbf{u}_{k+1} = \mathbf{u}_k + \Delta\mathbf{u}. \]</div>
+
+          <figure class="pfig" id="fig-newton">
+            <svg id="nr-plot" viewBox="0 0 640 360" role="img" aria-label="Itérations de Newton–Raphson sur une courbe effort–déplacement non linéaire&nbsp;: les tangentes successives convergent vers le point où l’effort interne égale la charge imposée."></svg>
+            <div class="pfig__controls">
+              <button type="button" class="pfig__btn" id="nr-step">Itération suivante</button>
+              <button type="button" class="pfig__btn pfig__btn--quiet" id="nr-reset">Réinitialiser</button>
+              <dl class="pfig__readout" id="nr-readout"></dl>
+            </div>
+            <figcaption><span class="fig">Fig. 3</span> Newton–Raphson sur un seul degré de liberté, avec une rigidité qui diminue au cours du chargement. Chaque pas suit la tangente au point courant jusqu’au niveau de charge imposé. Une fois l’estimation proche de la solution, le résidu diminue de plus en plus vite.</figcaption>
+          </figure>
+
+          <p>En chaque point de Gauss, un algorithme de retour (<i lang="en">return mapping</i>) calcule la contrainte. Il suppose d’abord que le pas est élastique. Si la contrainte d’essai ainsi obtenue viole le critère de plasticité,</p>
+          <div class="eqs">\[ f = \sigma_{\mathrm{eq}} - \sigma_y(\bar\varepsilon^{p}) \le 0, \] \[ \sigma_y = \sigma_0 + K\,(\bar\varepsilon^{p})^{n} \quad \text{(écrouissage de Ludwik)}, \]</div>
+          <p>il ramène la contrainte sur la surface de charge et cumule la déformation plastique équivalente \(\bar\varepsilon^{p}\). La linéarisation exacte de cet algorithme fournit l’opérateur tangent cohérent, qui préserve la convergence quadratique de Newton au voisinage de la solution. Lorsqu’un incrément ne converge pas, le solveur le découpe et recommence avec un pas plus petit.</p>
+        </section>
+
+        <section id="practice">
+          <h2>Bonnes pratiques</h2>
+          <dl class="practice">
+            <div>
+              <dt>Faire converger le maillage</dt>
+              <dd>Un résultat obtenu sur un seul maillage ne dit rien de sa propre erreur de discrétisation. Raffinez jusqu’à ce que la grandeur qui vous intéresse varie de moins d’un ou deux pour cent.</dd>
+            </div>
+            <div>
+              <dt>Choisir des éléments adaptés à la physique</dt>
+              <dd>Les triangles linéaires et les quadrangles à quatre nœuds en intégration complète sont trop raides en flexion (verrouillage en cisaillement), et trop raides en variation de volume lorsque le matériau est quasi incompressible, comme en écoulement plastique ou pour un élastomère (verrouillage volumique). Parmi les remèdes&nbsp;: éléments quadratiques, intégration réduite avec contrôle des modes à sablier, éléments à modes incompatibles comme le CPS4I d’Abaqus, et éléments hybrides en formulation mixte déplacement–pression.</dd>
+            </div>
+            <div>
+              <dt>Se méfier des pics de contrainte aux singularités</dt>
+              <dd>Les charges ponctuelles, les appuis ponctuels et les angles rentrants vifs produisent des contraintes qui croissent sans limite quand on raffine le maillage. Modélisez le congé ou la zone de contact réels, ou traitez la zone par la mécanique de la rupture.</dd>
+            </div>
+            <div>
+              <dt>Garder des unités cohérentes</dt>
+              <dd>La plupart des solveurs n’ont pas d’unités propres. Un système cohérent courant en calcul de structures&nbsp;: millimètres, newtons, mégapascals, tonnes et secondes.</dd>
+            </div>
+            <div>
+              <dt>Questionner les conditions aux limites</dt>
+              <dd>Des appuis trop rigides créent des contraintes que la structure réelle ne subit jamais, et c’est l’une des sources d’erreur les plus fréquentes.</dd>
+            </div>
+            <div>
+              <dt>Vérifier, puis valider</dt>
+              <dd>La vérification répond à la question «&nbsp;résout-on correctement les équations&nbsp;?&nbsp;»&nbsp;: <i lang="en">patch tests</i>, cas tests analytiques, convergence en maillage. La validation répond à «&nbsp;sont-ce les bonnes équations&nbsp;?&nbsp;», par comparaison avec l’expérience.</dd>
+            </div>
+          </dl>
+        </section>
+
+        <section id="measurement">
+          <h2>De la mesure au modèle</h2>
+          <p>La corrélation d’images numériques (CIN) mesure le champ de déplacement à la surface d’une éprouvette pendant un essai. Dans mes travaux, ces déplacements mesurés sont imposés comme conditions aux limites d’un modèle éléments finis&nbsp;: les champs calculés vérifient ainsi l’équilibre et la loi de comportement tout en restant ancrés dans l’expérience. Comparer champs simulés et champs mesurés, puis ajuster les paramètres matériaux jusqu’à ce qu’ils concordent, fait passer la méthode des éléments finis d’un outil de prédiction à un outil d’identification. <a href="../#research">En savoir plus sur la recherche</a>.</p>
+        </section>
+
+        <section id="reading" class="reading">
+          <h2>Pour aller plus loin</h2>
+          <ul>
+            <li>O. C. Zienkiewicz, R. L. Taylor et J. Z. Zhu, <cite lang="en">The Finite Element Method: Its Basis and Fundamentals</cite>, 7<sup>e</sup> éd., Butterworth-Heinemann, 2013.</li>
+            <li>T. J. R. Hughes, <cite lang="en">The Finite Element Method: Linear Static and Dynamic Finite Element Analysis</cite>, Dover, 2000.</li>
+            <li>K.-J. Bathe, <cite lang="en">Finite Element Procedures</cite>, 2<sup>e</sup> éd., 2014.</li>
+            <li>E. A. de Souza Neto, D. Perić et D. R. J. Owen, <cite lang="en">Computational Methods for Plasticity: Theory and Applications</cite>, Wiley, 2008.</li>
+            <li>T. Belytschko, W. K. Liu, B. Moran et K. Elkhodary, <cite lang="en">Nonlinear Finite Elements for Continua and Structures</cite>, 2<sup>e</sup> éd., Wiley, 2014.</li>
+          </ul>
+        </section>
+
+      </article>
+    </div>
+  </main>
+
+  <footer class="wrap foot">
+    <p>© 2026 Adil Kılınç</p>
+  </footer>
+
+  <script src="../vendor/katex/katex.min.js" defer></script>
+  <script src="../vendor/katex/contrib/auto-render.min.js" defer></script>
+  <script src="primer.js" defer></script>
+  <script src="../site.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Finite element simulator | Adil Kılınç</title>
+  <meta name="description" content="A finite element simulator that runs in the browser: pick a specimen, a material and a load case, pull it with your mouse and follow the stresses and the force–displacement curve.">
+  <meta property="og:title" content="Finite element simulator">
+  <meta property="og:description" content="Pull a specimen with your mouse: the finite element analysis runs in your browser.">
+  <meta property="og:type" content="website">
+  <link rel="alternate" hreflang="fr" href="https://adilkilinc.github.io/lab/">
+  <link rel="alternate" hreflang="en" href="https://adilkilinc.github.io/en/lab/">
+  <link rel="alternate" hreflang="x-default" href="https://adilkilinc.github.io/lab/">
+  <link rel="icon" href="../../favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="../../fonts/archivo-latin-wdth-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="../../fonts/source-serif-4-latin-opsz-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="../../styles.css">
+  <link rel="stylesheet" href="../../lab/lab.css">
+</head>
+<body class="sub">
+  <a class="skip" href="#main">Skip to content</a>
+
+  <div class="bar bar--static">
+    <div class="wrap bar__row">
+      <a class="bar__name" href="../">Adil Kılınç</a>
+      <div class="bar__end">
+      <nav aria-label="Sections">
+        <ul class="bar__nav">
+          <li><a href="../">Home</a></li>
+          <li><a href="../#research">Research</a></li>
+          <li><a href="../#software">Software</a></li>
+          <li><a href="../#publications">Publications</a></li>
+          <li><a href="../#contact">Contact</a></li>
+          <li><a href="../fem/">FEM primer</a></li>
+          <li><a href="./" aria-current="page">Simulator</a></li>
+        </ul>
+      </nav>
+        <div class="lang lang--bar" role="group" aria-label="Language">
+          <a href="../../lab/" hreflang="fr" lang="fr" aria-label="Français">FR</a>
+          <a href="./" hreflang="en" lang="en" aria-current="page" aria-label="English">EN</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <main id="main" class="wrap">
+    <header class="lab-head">
+      <h1>Finite element simulator</h1>
+      <p>Pick a specimen, a material and a load case, then pull it with your mouse or finger. The finite element analysis runs right in your browser.</p>
+    </header>
+
+    <section class="lab" aria-label="Simulator">
+      <div class="lab__stage">
+        <canvas id="lab-canvas" role="img" aria-label="Deformed specimen, coloured by the selected field. Drag it, or use the imposed displacement slider."></canvas>
+        <p class="lab__amp" id="lab-amp"></p>
+        <p class="lab__hint" id="lab-hint" aria-live="polite"></p>
+        <div class="lab__legend">
+          <strong id="lab-cb-title">Von Mises stress</strong>
+          <span class="lab__cb" aria-hidden="true"><span>0</span><i></i><span id="lab-cb-max"></span></span>
+          <span class="lab__over" id="lab-cb-over"><b aria-hidden="true"></b><span id="lab-cb-over-label"></span></span>
+        </div>
+      </div>
+
+      <form class="lab__controls" id="lab-form">
+        <fieldset>
+          <legend>Specimen</legend>
+          <div class="seg seg--stack">
+            <label><input type="radio" name="shape" value="dogbone" checked><span>Tensile specimen</span></label>
+            <label><input type="radio" name="shape" value="plate"><span>Plate with a hole</span></label>
+            <label><input type="radio" name="shape" value="notched"><span>Notched bar</span></label>
+            <label><input type="radio" name="shape" value="cantilever"><span>Cantilever beam</span></label>
+          </div>
+        </fieldset>
+
+        <div class="lab__field">
+          <label for="lab-material">Material</label>
+          <select id="lab-material">
+            <option value="316l">316L stainless steel</option>
+            <option value="s355">S355 structural steel</option>
+            <option value="al6061">Aluminium 6061-T6</option>
+            <option value="ti64">Titanium Ti-6Al-4V</option>
+            <option value="cu">Annealed copper</option>
+          </select>
+          <p class="lab__props" id="lab-props"></p>
+        </div>
+
+        <fieldset>
+          <legend>Load case</legend>
+          <div class="seg">
+            <label data-load="tension"><input type="radio" name="load" value="tension" checked><span>Tension</span></label>
+            <label data-load="compression"><input type="radio" name="load" value="compression"><span>Compression</span></label>
+            <label data-load="bending"><input type="radio" name="load" value="bending"><span>Bending</span></label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Field shown</legend>
+          <div class="seg">
+            <label><input type="radio" name="field" value="seq" checked><span>Von Mises</span></label>
+            <label><input type="radio" name="field" value="u"><span>Displacement</span></label>
+          </div>
+        </fieldset>
+
+        <label class="lab__check"><input type="checkbox" id="lab-mesh" checked> Show the mesh</label>
+
+        <div class="lab__field">
+          <label for="lab-d">Imposed displacement</label>
+          <input type="range" id="lab-d" min="0" max="1000" step="1" value="0">
+        </div>
+
+        <div class="lab__buttons">
+          <button type="button" class="lab__btn" id="lab-run">Run the test</button>
+          <button type="button" class="lab__btn lab__btn--quiet" id="lab-reset">Reset</button>
+        </div>
+      </form>
+
+      <div class="lab__results">
+        <svg id="lab-curve" viewBox="0 0 640 256" role="img" aria-label="Force–displacement curve of the test, with the first-yield point."></svg>
+        <dl class="lab__readout">
+          <div><dt>Imposed displacement</dt><dd id="lab-r-d">0</dd></div>
+          <div><dt>Force</dt><dd id="lab-r-f">0</dd></div>
+          <div><dt>Max von Mises stress</dt><dd id="lab-r-s">0</dd></div>
+          <div><dt>Ratio to yield strength</dt><dd id="lab-r-ratio">0</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <div class="lab-notes">
+      <section aria-labelledby="how-h">
+        <h2 id="how-h">How it works</h2>
+        <p>The model is two-dimensional, in plane stress, meshed with incompatible-mode quadrilaterals (QM6) that stay accurate in bending even with few elements through the depth. As on a testing machine, loading is displacement-controlled: you impose the movement of the grip or the free end, and the analysis returns the force and the stresses.</p>
+        <p>The material is linear elastic, so one solve per configuration is enough and everything else follows by proportion. The point marked on the curve is first yield. Beyond it the elastic analysis no longer represents the material, and regions where the von Mises stress exceeds the yield strength turn red.</p>
+      </section>
+
+      <section aria-labelledby="verify-h">
+        <h2 id="verify-h">Verification</h2>
+        <p>Recomputed in your browser by the same code as the simulator.</p>
+        <table class="verify">
+          <thead><tr><th scope="col">Case</th><th scope="col">Finite elements</th><th scope="col">Reference</th><th scope="col">Gap</th></tr></thead>
+          <tbody id="lab-verify"></tbody>
+        </table>
+      </section>
+
+      <section aria-labelledby="limits-h">
+        <h2 id="limits-h">Limits</h2>
+        <ul>
+          <li>No plasticity yet: beyond first yield the analysis stays elastic.</li>
+          <li>No buckling: in compression this linear model cannot buckle.</li>
+          <li>No torsion: it is a three-dimensional problem, beyond a plane model.</li>
+          <li>Indicative material properties: do not use them to size a part.</li>
+        </ul>
+      </section>
+    </div>
+  </main>
+
+  <footer class="wrap foot">
+    <p>© 2026 Adil Kılınç</p>
+  </footer>
+
+  <script src="../../lab/fe.js" defer></script>
+  <script src="../../lab/lab.js" defer></script>
+  <script src="../../site.js" defer></script>
+</body>
+</html>
